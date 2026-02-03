@@ -1,0 +1,1067 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Inloop Roulatie Generator</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='0.9em' font-size='90'>📅</text></svg>">
+    <style>
+        :root { 
+            --primary-color: #333333;
+            --primary-dark: #1a1a1a;
+            --color-rood: #e53935;
+            --color-geel: #fbc02d;
+            --color-blauw: #1e88e5;
+            --color-oranje: #fb8c00;
+            --color-groen: #43a047;
+            
+            /* Pastel day colors */
+            --day-ma-bg: #FFF9C4;
+            --day-di-bg: #FFCDD2;
+            --day-wo-bg: #F8BBD0;
+            --day-do-bg: #E1BEE7;
+            --day-vr-bg: #BBDEFB;
+        }
+        
+        * { box-sizing: border-box; }
+        
+        body { 
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: #f4f4f5; 
+            margin: 0; 
+            display: flex; 
+        }
+        
+        /* Sidebar */
+        .sidebar { 
+            width: 420px; 
+            background: #09090b;
+            color: #fafafa; 
+            height: 100vh; 
+            overflow-y: auto; 
+            padding: 24px 20px; 
+            position: fixed; 
+            border-right: 1px solid #27272a;
+        }
+        
+        .sidebar::-webkit-scrollbar { width: 8px; }
+        .sidebar::-webkit-scrollbar-track { background: transparent; }
+        .sidebar::-webkit-scrollbar-thumb { background: #27272a; border-radius: 4px; }
+        
+        h2 { 
+            color: #fafafa;
+            font-weight: 600;
+            font-size: 1.125rem;
+            margin: 0 0 24px 0;
+        }
+        
+        h3 {
+            color: #a1a1aa;
+            margin: 24px 0 12px 0; 
+            font-size: 0.75rem;
+            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+        
+        label { 
+            display: block; 
+            margin-top: 16px; 
+            font-size: 0.875rem; 
+            color: #fafafa;
+            font-weight: 500;
+        }
+        
+        input[type="text"], input[type="number"], input[type="date"], select { 
+            width: 100%; 
+            padding: 10px 12px; 
+            border-radius: 6px; 
+            border: 1px solid #27272a; 
+            margin-top: 6px; 
+            font-family: inherit;
+            font-size: 0.875rem;
+            background: #09090b;
+            color: #fafafa;
+        }
+        
+        input[type="date"]::-webkit-calendar-picker-indicator {
+            filter: invert(1);
+            cursor: pointer;
+        }
+        
+        select {
+            cursor: pointer;
+            appearance: none;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%2371717a' d='M6 8L1 3h10z'/%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 12px center;
+            padding-right: 32px;
+        }
+        
+        input:focus, select:focus {
+            outline: none;
+            border-color: #3f3f46;
+            box-shadow: 0 0 0 2px rgba(63, 63, 70, 0.3);
+        }
+        
+        .activity-input {
+            background: #18181b;
+            border: 1px solid #27272a;
+            padding: 12px;
+            border-radius: 6px;
+            margin-top: 12px;
+        }
+        
+        .activity-input label {
+            margin-top: 0;
+            font-size: 0.8rem;
+            color: #a1a1aa;
+        }
+        
+        .activity-input input, .activity-input select {
+            margin-top: 4px;
+            font-size: 0.875rem;
+        }
+        
+        .checkbox-row {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-top: 8px;
+        }
+        
+        .checkbox-row input[type="checkbox"] {
+            width: 18px;
+            height: 18px;
+            accent-color: var(--primary-color);
+            cursor: pointer;
+        }
+        
+        .checkbox-label {
+            margin: 0 !important;
+            cursor: pointer;
+            font-size: 0.75rem;
+            color: #a1a1aa;
+        }
+        
+        .mode-select {
+            background: #18181b;
+            border: 1px solid #27272a;
+            padding: 16px;
+            border-radius: 6px;
+            margin-top: 12px;
+        }
+        
+        .btn-save { 
+            background: var(--primary-color);
+            color: white; 
+            border: none; 
+            padding: 12px 16px; 
+            width: 100%; 
+            border-radius: 6px; 
+            font-weight: 500; 
+            cursor: pointer; 
+            margin-top: 24px; 
+            font-size: 0.875rem;
+            transition: background 0.15s;
+        }
+        
+        .btn-save:hover { background: var(--primary-dark); }
+        .btn-save:disabled { background: #3f3f46; cursor: not-allowed; opacity: 0.5; }
+        
+        .btn-save[style*="4CAF50"]:hover { background: #45a049 !important; }
+        
+        .btn-export {
+            background: #ff9800;
+            color: white; 
+            border: none; 
+            padding: 12px 16px; 
+            width: 100%; 
+            border-radius: 6px; 
+            font-weight: 500; 
+            cursor: pointer; 
+            margin-top: 12px; 
+            font-size: 0.875rem;
+            transition: background 0.15s;
+        }
+        
+        .btn-export:hover { background: #f57c00; }
+        
+        hr { 
+            border: none;
+            border-top: 1px solid #27272a;
+            margin: 20px 0; 
+        }
+        
+        .info-box {
+            background: #18181b;
+            border: 1px solid #27272a;
+            border-radius: 6px;
+            padding: 12px;
+            margin-top: 12px;
+            font-size: 0.8rem;
+            color: #a1a1aa;
+            line-height: 1.5;
+        }
+        
+        .copyright {
+            margin-top: 24px;
+            padding-top: 16px;
+            border-top: 1px solid #27272a;
+            font-size: 0.75rem;
+            color: #52525b;
+            text-align: center;
+        }
+        
+        /* Main Content */
+        .main-content { 
+            margin-left: 440px; 
+            padding: 30px; 
+            min-height: 100vh; 
+            width: calc(100% - 440px);
+        }
+        
+        /* A4 Page */
+        .a4-page { 
+            width: 210mm; 
+            background: white; 
+            padding: 20mm; 
+            margin: 0 auto 30px auto; 
+            box-shadow: 0 0 20px rgba(0,0,0,0.2);
+        }
+        
+        .page-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #000;
+            margin-bottom: 8px;
+        }
+        
+        .page-subtitle {
+            font-size: 0.95rem;
+            color: #666;
+            margin-bottom: 20px;
+            font-weight: 400;
+        }
+        
+        /* Table Styling - Word-like */
+        .planning-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        
+        .planning-table th,
+        .planning-table td {
+            border: 1px solid #000;
+            padding: 12px 10px;
+            text-align: center;
+            vertical-align: middle;
+            font-size: 0.95rem;
+        }
+        
+        .planning-table th {
+            background: #333;
+            color: white;
+            font-weight: 600;
+        }
+        
+        .planning-table th small {
+            font-weight: 400;
+        }
+        
+        /* Colored day headers */
+        .planning-table th.header-ma { background: #FDD835; color: #000; }
+        .planning-table th.header-di { background: #EF5350; color: #fff; }
+        .planning-table th.header-wo { background: #EC407A; color: #fff; }
+        .planning-table th.header-do { background: #AB47BC; color: #fff; }
+        .planning-table th.header-vr { background: #42A5F5; color: #fff; }
+        
+        .planning-table .group-cell {
+            font-weight: 600;
+            width: 100px;
+            background: #fff;
+        }
+        
+        .planning-table .group-rood { color: var(--color-rood); }
+        .planning-table .group-geel { color: #f57f17; }
+        .planning-table .group-blauw { color: var(--color-blauw); }
+        .planning-table .group-oranje { color: var(--color-oranje); }
+        .planning-table .group-groen { color: var(--color-groen); }
+        
+        /* Day column colors */
+        .planning-table .day-ma { background: var(--day-ma-bg); }
+        .planning-table .day-di { background: var(--day-di-bg); }
+        .planning-table .day-wo { background: var(--day-wo-bg); }
+        .planning-table .day-do { background: var(--day-do-bg); }
+        .planning-table .day-vr { background: var(--day-vr-bg); }
+        
+        .planning-table .free-day {
+            background: #f5f5f5 !important;
+            color: #999;
+        }
+        
+        /* Activities Overview */
+        .activities-overview {
+            margin-top: 30px;
+            page-break-before: avoid;
+        }
+        
+        .activities-overview h3 {
+            font-size: 1.2rem;
+            color: #000;
+            margin-bottom: 15px;
+            border-bottom: 2px solid #333;
+            padding-bottom: 8px;
+        }
+        
+        .activity-detail {
+            margin-bottom: 15px;
+            padding: 12px;
+            background: #f9f9f9;
+            border-left: 4px solid #333;
+        }
+        
+        .activity-detail h4 {
+            margin: 0 0 6px 0;
+            font-size: 1rem;
+            color: #000;
+        }
+        
+        .activity-detail .goal {
+            font-size: 0.9rem;
+            color: #666;
+            font-weight: 600;
+            margin-bottom: 4px;
+        }
+        
+        .activity-detail .description {
+            font-size: 0.85rem;
+            color: #666;
+            font-style: italic;
+        }
+        
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: #666;
+        }
+        
+        .empty-state h3 {
+            color: #333;
+            font-size: 1.2rem;
+            margin-bottom: 10px;
+            text-transform: none;
+        }
+        
+        /* Print Styles */
+        @media print {
+            body { background: white; }
+            .sidebar { display: none; }
+            .main-content { margin: 0; padding: 0; width: 100%; }
+            .a4-page { 
+                box-shadow: none; 
+                margin: 0; 
+                width: 100%; 
+                page-break-inside: avoid;
+            }
+        }
+        
+        .hidden { display: none !important; }
+    </style>
+</head>
+<body>
+
+<div class="sidebar">
+    <h2>Inloop Roulatie Generator</h2>
+    
+    <label>Thema</label>
+    <input type="text" id="thema" placeholder="Bijv. Licht en Donker" oninput="autoGenerate()">
+    
+    <label>Van Datum</label>
+    <input type="date" id="startDatum" oninput="autoGenerate()">
+    
+    <label>Tot Datum</label>
+    <input type="date" id="eindDatum" oninput="autoGenerate()">
+    
+    <hr>
+    
+    <div class="mode-select">
+        <label style="margin-top: 0;">Week Modus</label>
+        <select id="weekMode" onchange="onModeChange()">
+            <option value="5">5 Dagen Week</option>
+            <option value="4">4 Dagen Week</option>
+        </select>
+        
+        <div id="freeDaySelect" class="hidden" style="margin-top: 12px;">
+            <label style="margin-top: 0;">Welke dag is vrij?</label>
+            <select id="freeDay" onchange="autoGenerate()">
+                <option value="ma">Maandag</option>
+                <option value="di">Dinsdag</option>
+                <option value="wo">Woensdag</option>
+                <option value="do">Donderdag</option>
+                <option value="vr">Vrijdag</option>
+            </select>
+        </div>
+    </div>
+    
+    <hr>
+    
+    <h3>Werkjes / Activiteiten</h3>
+    
+    <div id="activitiesContainer"></div>
+    
+    <div class="info-box" id="infoBox4Day" style="display: none;">
+        <strong>Tips:</strong><br>
+        • Vrije dag blijft zichtbaar maar is leeg<br>
+        • "Noodzakelijk": zorgt dat alle groepen dit werkje doen (kan dubbel voorkomen)<br>
+        • Niet-noodzakelijk: sommige groepen kunnen het missen
+    </div>
+    
+    <button class="btn-save" onclick="downloadPNG()" id="btnPdf" disabled>OPSLAAN ALS PDF</button>
+    <button class="btn-save" onclick="printPlanning()" id="btnPrint" disabled style="background: #4CAF50; margin-top: 8px;">AFDRUKKEN</button>
+    <button class="btn-export" onclick="exportJSON()" id="btnJson" disabled>EXPORTEER JSON</button>
+    
+    <div style="margin-top: 12px;">
+        <label style="margin-top: 0;">Import JSON</label>
+        <input type="file" accept=".json" onchange="importJSON(event)" style="margin-top: 6px; color: #a1a1aa; font-size: 0.8rem;">
+    </div>
+    
+    <div class="copyright">© <span id="copyrightYear"></span> Jazz Bauer</div>
+</div>
+
+<div class="main-content">
+    <div class="a4-page" id="preview">
+        <div class="empty-state">
+            <h3>Vul werkjes in</h3>
+            <p>Het rooster wordt automatisch gegenereerd</p>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+
+<script>
+// MijnKleutergroep doelen structuur
+const MKG_DOELEN = {
+    "Rekenen": {
+    "Tellen": ["TG01 Akoestisch tellen", "TG02 Resultatief tellen", "TG03 Rangtelwoorden"],
+    "Hoeveelheden & inzicht in getallen": ["TG04 Hoeveelheden herkennen", "TG05 Hoeveelheden representeren", "TG06 Hoeveelheidsbegrippen", "TG07 Cijferkennis", "TG08 Positie getallenlijn"],
+    "Optellen, aftrekken & splitsingen": ["TG09 Optellen en aftrekken", "TG10 Verdelen", "TG11 Splitsen"],
+    "Verhoudingen & verbanden": ["TG12 Tabellen en grafieken", "TG13 Verhoudingen"],
+    "Meten: lengte, omtrek & oppervlakte": ["MM01 Lengte meten", "MM02 Seriëren", "MM03 Oppervlakte meten"],
+    "Meten: inhoud & gewicht": ["MM04 Inhoud meten", "MM05 Gewicht meten"],
+    "Meten: tijd & geld": ["MM06 Kalender", "MM07 Tijdsbeleving en klok", "MM08 Geld"],
+    "Meetkunde": ["MM09 Vormen", "MM10 Kleuren", "MM11 Vouwen", "MM12 Meetkundige begrippen", "MM13 Schaduw en spiegelen", "MM14 Patronen", "MM15 Plattegronden", "MM16 Sorteren en classificeren", "MM17 Bouwen", "MM18 Puzzelen"]
+  },
+  "Taal": {
+    "Woordenschat & woordgebruik": ["MT01 Uitspraak en zinsbouw", "MT02 Woordenschat (passief)", "MT03 Woordenschat (actief)", "MT04 Begrippen geletterdheid"],
+    "Spreken & luisteren": ["MT05 Gesprekken voeren", "MT06 Vragen en antwoorden", "MT07 Mening"],
+    "Fonologisch bewustzijn": ["AL01 Rijmen", "AL02 Aantal woorden", "AL03 Kritisch luisteren", "AL04 Auditieve analyse", "AL05 Versjes", "AL06 Instructie", "AL07 Auditief geheugen", "AL08 Auditieve synthese"],
+    "Leesplezier": ["AL09 Luisteren naar verhalen", "AL10 Beginnend teksten lezen", "AL11 Verhalen naspelen", "AL12 Letterkennis"],
+    "Technisch lezen": ["AL13 AVI", "AL14 Zinnen lezen", "AL15 Samengestelde woorden", "AL16 -dt, -ng, -nk lezen", "AL17 Mmkmm, mkmmm etc.", "AL18 -aai, -ooi, -eeuw etc.", "AL19 -ig, -lijk, -ing", "AL20 Drielettergrepige woorden"],
+    "Begrijpend lezen": ["AL21 On-, ont-, be-, ge-, ver-", "AL22 Verhaalstructuur", "AL23 Soorten teksten", "AL24 Vragen stellen (teksten)", "AL25 Leesproces en -doel"],
+    "Voorbereidend schrijven & teksten": ["AS01 (Na)schrijven en -stempelen", "AS02 Schrijfpatronen"],
+    "Spelling & naalverzorging": ["AS03 Mmkmm", "AS04 Mmmkm en mkmmm", "AS05 -ng en -nk", "AS06 Lange en twee tekenklanken", "AS07 Ou(w)/au(w)/ei/ij/cht"]
+  },
+  "Motoriek": {
+    "Grove motoriek": ["GM01 Lopen en rennen", "GM02 Balanceren", "GM03 Huppelen", "GM04 Hinkelen", "GM05 Klimmen", "GM06 Springen", "GM07 Werpen en vangen", "GM08 Tikspelen", "GM09 Koprollen", "GM10 Mikken", "GM11 Stoeispelen", "GM12 Bewegen op muziek"],
+    "Fijne motoriek": ["FM01 Pengreep", "FM02 Inkleuren", "FM03 Scheuren", "FM04 Knippen", "FM05 Verven", "FM06 Stempelen", "FM07 Plakken", "FM08 Klei en zand"],
+    "Tekenontwikkeling": ["FM09 Tekenen", "FM10 Tekenen"]
+    },
+    "SEO & Spel": {
+        "Welbevinden & gevoelens": ["WG01 Emotionele balans", "WG02 Zelfvertrouwen", "WG03 Feedback ontvangen", "WG04 Gevoelens uiten", "WG05 Omgaan met conflicten"],
+        "Zelfstandigheid": ["ZH01 Aandacht vragen", "ZH02 Actief uiten in groep", "ZH03 Eigen mening", "ZH04 Hulp vragen", "ZH05 Omkleden"],
+        "Betrokkenheid & concentratie": ["BT01 Taakaanpak", "BT02 Betrokkenheid", "BT03 Concentratie", "BT04 Omgang met materialen", "BT05 Complimenteren"],
+        "Samenwerken": ["SW01 Contact met anderen", "SW02 Samenwerken", "SW03 Omgaan met regels"],
+        "Spelontwikkeling": ["SP01 Spelniveau", "SP02 Spelinteractie", "SP03 Speeltaal"]
+    }
+};
+
+    const { jsPDF } = window.jspdf;
+    
+    const groups = ['oranje', 'groen', 'rood', 'geel', 'blauw'];
+    const groupColors = {
+        'oranje': { name: 'Oranje' },
+        'groen': { name: 'Groen' },
+        'rood': { name: 'Rood' },
+        'geel': { name: 'Geel' },
+        'blauw': { name: 'Blauw' }
+    };
+    
+    const allDays = [
+        { key: 'ma', name: 'Maandag' },
+        { key: 'di', name: 'Dinsdag' },
+        { key: 'wo', name: 'Woensdag' },
+        { key: 'do', name: 'Donderdag' },
+        { key: 'vr', name: 'Vrijdag' }
+    ];
+    
+    let currentPlanning = null;
+    
+    document.getElementById('copyrightYear').textContent = new Date().getFullYear();
+    
+    window.addEventListener('DOMContentLoaded', () => {
+        // Set default dates
+        const today = new Date();
+        const dayOfWeek = today.getDay();
+        const monday = new Date(today);
+        monday.setDate(today.getDate() - (dayOfWeek === 0 ? 6 : dayOfWeek - 1));
+        
+        const friday = new Date(monday);
+        friday.setDate(monday.getDate() + 4);
+        
+        document.getElementById('startDatum').valueAsDate = monday;
+        document.getElementById('eindDatum').valueAsDate = friday;
+        
+        // Build activity inputs
+        buildActivityInputs();
+        
+        // Populate goal selects
+        populateGoalSelects();
+        
+        autoGenerate();
+    });
+    
+    function buildActivityInputs() {
+        const container = document.getElementById('activitiesContainer');
+        container.innerHTML = '';
+        
+        for (let i = 1; i <= 5; i++) {
+            const div = document.createElement('div');
+            div.className = 'activity-input';
+            div.innerHTML = `
+                <label>Werkje ${i}</label>
+                <input type="text" id="werkje${i}" placeholder="Bijv. Klei" oninput="autoGenerate()">
+                
+                <label style="margin-top: 8px;">MKG Doel (optioneel)</label>
+                <select id="doel${i}" onchange="autoGenerate()">
+                    <option value="">-- Geen doel --</option>
+                </select>
+                
+                <label style="margin-top: 8px;">Omschrijving (optioneel)</label>
+                <input type="text" id="omschrijving${i}" placeholder="Toelichting..." oninput="autoGenerate()">
+                
+                <div class="checkbox-row essential-checkbox" style="margin-top: 8px; display: none;">
+                    <input type="checkbox" id="essential${i}" onchange="autoGenerate()">
+                    <label for="essential${i}" class="checkbox-label">Noodzakelijk (alle groepen moeten dit doen)</label>
+                </div>
+            `;
+            container.appendChild(div);
+        }
+    }
+    
+    function populateGoalSelects() {
+        for (let i = 1; i <= 5; i++) {
+            const select = document.getElementById(`doel${i}`);
+            
+            Object.keys(MKG_DOELEN).forEach(category => {
+                const optgroup = document.createElement('optgroup');
+                optgroup.label = category;
+                
+                Object.keys(MKG_DOELEN[category]).forEach(subcategory => {
+                    MKG_DOELEN[category][subcategory].forEach(goal => {
+                        const option = document.createElement('option');
+                        option.value = goal;
+                        option.textContent = goal;
+                        optgroup.appendChild(option);
+                    });
+                });
+                
+                select.appendChild(optgroup);
+            });
+        }
+    }
+    
+    function onModeChange() {
+        const mode = document.getElementById('weekMode').value;
+        const freeDaySelect = document.getElementById('freeDaySelect');
+        const essentialCheckboxes = document.querySelectorAll('.essential-checkbox');
+        const infoBox = document.getElementById('infoBox4Day');
+        
+        if (mode === '4') {
+            freeDaySelect.classList.remove('hidden');
+            essentialCheckboxes.forEach(cb => cb.style.display = 'flex');
+            infoBox.style.display = 'block';
+        } else {
+            freeDaySelect.classList.add('hidden');
+            essentialCheckboxes.forEach(cb => cb.style.display = 'none');
+            infoBox.style.display = 'none';
+        }
+        
+        autoGenerate();
+    }
+    
+    function autoGenerate() {
+        try {
+            generatePlanning(true);
+        } catch (e) {
+            showEmptyState();
+        }
+    }
+    
+    function generatePlanning(silent = false) {
+        const activities = [];
+        for (let i = 1; i <= 5; i++) {
+            const val = document.getElementById(`werkje${i}`).value.trim();
+            if (val) {
+                const mode = document.getElementById('weekMode').value;
+                const isEssential = mode === '4' ? document.getElementById(`essential${i}`).checked : false;
+                const doel = document.getElementById(`doel${i}`).value;
+                const omschrijving = document.getElementById(`omschrijving${i}`).value.trim();
+                activities.push({ name: val, isEssential, doel, omschrijving, id: i });
+            }
+        }
+        
+        if (activities.length < 1) {
+            showEmptyState();
+            return;
+        }
+        
+        const mode = document.getElementById('weekMode').value;
+        const freeDay = mode === '4' ? document.getElementById('freeDay').value : null;
+        
+        const workingDays = allDays.filter(day => mode === '5' || day.key !== freeDay);
+        
+        const schedule = createSchedule(groups, activities, workingDays, freeDay, mode);
+        currentPlanning = { schedule, activities, workingDays, freeDay, mode };
+        
+        renderPlanning();
+        
+        document.getElementById('btnPdf').disabled = false;
+        document.getElementById('btnPrint').disabled = false;
+        document.getElementById('btnJson').disabled = false;
+    }
+    
+    function createSchedule(groups, activities, workingDays, freeDay, mode) {
+        const schedule = {};
+        const numGroups = groups.length;
+        
+        groups.forEach(group => {
+            schedule[group] = {};
+            allDays.forEach(day => {
+                schedule[group][day.key] = null;
+            });
+        });
+        
+        if (mode === '5') {
+            groups.forEach((group, groupIndex) => {
+                workingDays.forEach((day, dayIndex) => {
+                    const activityIndex = (groupIndex + dayIndex) % activities.length;
+                    schedule[group][day.key] = activities[activityIndex].name;
+                });
+            });
+        } else {
+            const numWorkingDays = 4;
+            const essentialActivities = activities.filter(a => a.isEssential);
+            const nonEssentialActivities = activities.filter(a => !a.isEssential);
+            
+            const assignmentMatrix = [];
+            
+            groups.forEach((group, groupIndex) => {
+                const groupAssignments = [];
+                
+                essentialActivities.forEach(activity => {
+                    groupAssignments.push(activity);
+                });
+                
+                while (groupAssignments.length < numWorkingDays) {
+                    if (nonEssentialActivities.length > 0) {
+                        const idx = groupAssignments.length % nonEssentialActivities.length;
+                        groupAssignments.push(nonEssentialActivities[idx]);
+                    } else {
+                        const idx = groupAssignments.length % essentialActivities.length;
+                        groupAssignments.push(essentialActivities[idx]);
+                    }
+                }
+                
+                for (let i = 0; i < groupIndex; i++) {
+                    groupAssignments.push(groupAssignments.shift());
+                }
+                
+                assignmentMatrix.push(groupAssignments);
+            });
+            
+            groups.forEach((group, groupIndex) => {
+                workingDays.forEach((day, dayIndex) => {
+                    if (dayIndex < assignmentMatrix[groupIndex].length) {
+                        schedule[group][day.key] = assignmentMatrix[groupIndex][dayIndex].name;
+                    }
+                });
+            });
+        }
+        
+        return schedule;
+    }
+    
+    function showEmptyState() {
+        document.getElementById('preview').innerHTML = `
+            <div class="empty-state">
+                <h3>Vul werkjes in</h3>
+                <p>Het rooster wordt automatisch gegenereerd</p>
+            </div>
+        `;
+        document.getElementById('btnPdf').disabled = true;
+        document.getElementById('btnPrint').disabled = true;
+        document.getElementById('btnJson').disabled = true;
+        currentPlanning = null;
+    }
+    
+    function getWeekDatesFromRange() {
+        const startDate = document.getElementById('startDatum').valueAsDate;
+        const endDate = document.getElementById('eindDatum').valueAsDate;
+        
+        if (!startDate || !endDate) return null;
+        
+        const dates = [];
+        const current = new Date(startDate);
+        
+        while (current <= endDate && dates.length < 7) {
+            dates.push(new Date(current));
+            current.setDate(current.getDate() + 1);
+        }
+        
+        return dates;
+    }
+    
+    function formatDateRange(startDate, endDate) {
+        const startDay = startDate.getDate();
+        const endDay = endDate.getDate();
+        const startMonth = startDate.toLocaleString('nl-NL', { month: 'long' });
+        const endMonth = endDate.toLocaleString('nl-NL', { month: 'long' });
+        const startYear = startDate.getFullYear();
+        const endYear = endDate.getFullYear();
+        
+        if (startMonth === endMonth && startYear === endYear) {
+            return `${startDay} t/m ${endDay} ${startMonth} ${startYear}`;
+        } else if (startYear === endYear) {
+            return `${startDay} ${startMonth} t/m ${endDay} ${endMonth} ${startYear}`;
+        } else {
+            return `${startDay} ${startMonth} ${startYear} t/m ${endDay} ${endMonth} ${endYear}`;
+        }
+    }
+    
+    function formatDateShort(date) {
+        const day = date.getDate();
+        const month = date.toLocaleString('nl-NL', { month: 'short' });
+        return `${day} ${month}`;
+    }
+    
+    function getDayKeyFromDate(date) {
+        const keyMap = {
+            0: null, // Sunday
+            1: 'ma',
+            2: 'di',
+            3: 'wo',
+            4: 'do',
+            5: 'vr',
+            6: null  // Saturday
+        };
+        
+        return keyMap[date.getDay()];
+    }
+    
+    function renderPlanning() {
+        const thema = document.getElementById('thema').value || 'Weekplanning';
+        const { schedule, freeDay, mode, activities } = currentPlanning;
+        
+        const weekDates = getWeekDatesFromRange();
+        const startDate = document.getElementById('startDatum').valueAsDate;
+        const endDate = document.getElementById('eindDatum').valueAsDate;
+        
+        let subtitle = '';
+        if (startDate && endDate) {
+            subtitle = `<div class="page-subtitle">Inloop ${formatDateRange(startDate, endDate)}</div>`;
+        }
+        
+        const dateMapping = {};
+        if (weekDates) {
+            weekDates.forEach(date => {
+                const dayKey = getDayKeyFromDate(date);
+                if (dayKey) {
+                    dateMapping[dayKey] = date;
+                }
+            });
+        }
+        
+        let html = `
+            <div class="page-title">${thema}</div>
+            ${subtitle}
+            <table class="planning-table">
+                <thead>
+                    <tr>
+                        <th>Wie</th>
+                        ${allDays.map(d => {
+                            const date = dateMapping[d.key];
+                            const dateStr = date ? `<br><small>${formatDateShort(date)}</small>` : '';
+                            return `<th class="header-${d.key}">${d.name}${dateStr}</th>`;
+                        }).join('')}
+                    </tr>
+                </thead>
+                <tbody>
+        `;
+        
+        groups.forEach(group => {
+            const color = groupColors[group];
+            html += `<tr>
+                <td class="group-cell group-${group}">${color.name}</td>
+                ${allDays.map(d => {
+                    const isFreeDay = mode === '4' && d.key === freeDay;
+                    const activity = schedule[group][d.key];
+                    const dayClass = isFreeDay ? 'free-day' : `day-${d.key}`;
+                    return `<td class="${dayClass}">${activity || ''}</td>`;
+                }).join('')}
+            </tr>`;
+        });
+        
+        html += `</tbody></table>`;
+        
+        // Add activities overview if any have goals or descriptions
+        const activitiesWithDetails = activities.filter(a => a.doel || a.omschrijving);
+        if (activitiesWithDetails.length > 0) {
+            html += `
+                <div class="activities-overview">
+                    <h3>Activiteiten & Doelen</h3>
+            `;
+            
+            activitiesWithDetails.forEach(activity => {
+                html += `
+                    <div class="activity-detail">
+                        <h4>${activity.name}</h4>
+                        ${activity.doel ? `<div class="goal">${activity.doel}</div>` : ''}
+                        ${activity.omschrijving ? `<div class="description">${activity.omschrijving}</div>` : ''}
+                    </div>
+                `;
+            });
+            
+            html += `</div>`;
+        }
+        
+        document.getElementById('preview').innerHTML = html;
+    }
+    
+    async function downloadPNG() {
+        if (!currentPlanning) return;
+        
+        const btn = document.getElementById('btnPdf');
+        btn.textContent = 'PDF wordt gemaakt...';
+        btn.disabled = true;
+        
+        try {
+            const thema = document.getElementById('thema').value || 'weekplanning';
+            const page = document.querySelector('.a4-page');
+            
+            // A4 dimensions at 300 DPI for high quality
+            const a4WidthPx = 2480;  // 210mm at 300 DPI
+            const a4HeightPx = 3508; // 297mm at 300 DPI
+            
+            const canvas = await html2canvas(page, { 
+                scale: 3,
+                useCORS: true,
+                backgroundColor: '#ffffff',
+                width: page.scrollWidth,
+                height: page.scrollHeight
+            });
+            
+            // Create final canvas with exact A4 dimensions
+            const finalCanvas = document.createElement('canvas');
+            finalCanvas.width = a4WidthPx;
+            finalCanvas.height = a4HeightPx;
+            const ctx = finalCanvas.getContext('2d');
+            
+            // Fill white background
+            ctx.fillStyle = '#ffffff';
+            ctx.fillRect(0, 0, a4WidthPx, a4HeightPx);
+            
+            // Calculate scaling to fit content in A4
+            const scaleX = a4WidthPx / canvas.width;
+            const scaleY = a4HeightPx / canvas.height;
+            const scale = Math.min(scaleX, scaleY);
+            
+            const scaledWidth = canvas.width * scale;
+            const scaledHeight = canvas.height * scale;
+            
+            // Center content
+            const x = (a4WidthPx - scaledWidth) / 2;
+            const y = 0;
+            
+            ctx.drawImage(canvas, x, y, scaledWidth, scaledHeight);
+            
+            // Put PNG in PDF
+            const imgData = finalCanvas.toDataURL('image/png');
+            const pdf = new jsPDF('p', 'mm', 'a4');
+            pdf.addImage(imgData, 'PNG', 0, 0, 210, 297);
+            
+            // Download PDF
+            const filename = thema.replace(/[^a-z0-9]/gi, '_').toLowerCase();
+            pdf.save(`Weekplanning_${filename}.pdf`);
+            
+        } catch (err) {
+            console.error(err);
+            alert('Er ging iets mis bij het maken van de PDF.');
+        }
+        
+        btn.textContent = 'OPSLAAN ALS PDF';
+        btn.disabled = false;
+    }
+    
+    async function printPlanning() {
+        if (!currentPlanning) return;
+        
+        const btn = document.getElementById('btnPrint');
+        btn.textContent = 'PDF wordt gemaakt...';
+        btn.disabled = true;
+        
+        try {
+            const page = document.querySelector('.a4-page');
+            
+            // A4 dimensions at 300 DPI for high quality
+            const a4WidthPx = 2480;  // 210mm at 300 DPI
+            const a4HeightPx = 3508; // 297mm at 300 DPI
+            
+            const canvas = await html2canvas(page, { 
+                scale: 3,
+                useCORS: true,
+                backgroundColor: '#ffffff',
+                width: page.scrollWidth,
+                height: page.scrollHeight
+            });
+            
+            // Create final canvas with exact A4 dimensions
+            const finalCanvas = document.createElement('canvas');
+            finalCanvas.width = a4WidthPx;
+            finalCanvas.height = a4HeightPx;
+            const ctx = finalCanvas.getContext('2d');
+            
+            // Fill white background
+            ctx.fillStyle = '#ffffff';
+            ctx.fillRect(0, 0, a4WidthPx, a4HeightPx);
+            
+            // Calculate scaling to fit content in A4
+            const scaleX = a4WidthPx / canvas.width;
+            const scaleY = a4HeightPx / canvas.height;
+            const scale = Math.min(scaleX, scaleY);
+            
+            const scaledWidth = canvas.width * scale;
+            const scaledHeight = canvas.height * scale;
+            
+            // Center content
+            const x = (a4WidthPx - scaledWidth) / 2;
+            const y = 0;
+            
+            ctx.drawImage(canvas, x, y, scaledWidth, scaledHeight);
+            
+            // Put PNG in PDF and print
+            const imgData = finalCanvas.toDataURL('image/png');
+            const pdf = new jsPDF('p', 'mm', 'a4');
+            pdf.addImage(imgData, 'PNG', 0, 0, 210, 297);
+            
+            pdf.autoPrint();
+            window.open(pdf.output('bloburl'), '_blank');
+            
+        } catch (err) {
+            console.error(err);
+            alert('Er ging iets mis bij het maken van de PDF.');
+        }
+        
+        btn.textContent = 'AFDRUKKEN';
+        btn.disabled = false;
+    }
+    
+    function exportJSON() {
+        if (!currentPlanning) return;
+        
+        const thema = document.getElementById('thema').value;
+        const startDatum = document.getElementById('startDatum').value;
+        const eindDatum = document.getElementById('eindDatum').value;
+        const mode = document.getElementById('weekMode').value;
+        const freeDay = mode === '4' ? document.getElementById('freeDay').value : null;
+        
+        const activities = [];
+        for (let i = 1; i <= 5; i++) {
+            const val = document.getElementById(`werkje${i}`).value.trim();
+            const essential = document.getElementById(`essential${i}`).checked;
+            const doel = document.getElementById(`doel${i}`).value;
+            const omschrijving = document.getElementById(`omschrijving${i}`).value.trim();
+            if (val) activities.push({ name: val, isEssential: essential, doel, omschrijving });
+        }
+        
+        const data = {
+            thema,
+            startDatum,
+            eindDatum,
+            mode,
+            freeDay,
+            activities,
+            planning: currentPlanning.schedule
+        };
+        
+        const jsonString = JSON.stringify(data, null, 2);
+        const blob = new Blob([jsonString], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+        
+        const a = document.createElement('a');
+        a.href = url;
+        const filename = (thema || 'weekplanning').replace(/[^a-z0-9]/gi, '_').toLowerCase();
+        a.download = `Weekplanning_${filename}.json`;
+        a.click();
+        
+        URL.revokeObjectURL(url);
+    }
+    
+    function importJSON(event) {
+        const file = event.target.files[0];
+        if (!file) return;
+        
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            try {
+                const data = JSON.parse(e.target.result);
+                
+                document.getElementById('thema').value = data.thema || '';
+                document.getElementById('startDatum').value = data.startDatum || '';
+                document.getElementById('eindDatum').value = data.eindDatum || '';
+                document.getElementById('weekMode').value = data.mode || '5';
+                
+                if (data.freeDay) {
+                    document.getElementById('freeDay').value = data.freeDay;
+                }
+                
+                onModeChange();
+                
+                for (let i = 1; i <= 5; i++) {
+                    document.getElementById(`werkje${i}`).value = '';
+                    document.getElementById(`essential${i}`).checked = false;
+                    document.getElementById(`doel${i}`).value = '';
+                    document.getElementById(`omschrijving${i}`).value = '';
+                }
+                
+                if (data.activities) {
+                    data.activities.forEach((activity, i) => {
+                        if (i < 5) {
+                            const activityData = typeof activity === 'string' ? 
+                                { name: activity, isEssential: false, doel: '', omschrijving: '' } : activity;
+                            document.getElementById(`werkje${i + 1}`).value = activityData.name;
+                            document.getElementById(`essential${i + 1}`).checked = activityData.isEssential || false;
+                            document.getElementById(`doel${i + 1}`).value = activityData.doel || '';
+                            document.getElementById(`omschrijving${i + 1}`).value = activityData.omschrijving || '';
+                        }
+                    });
+                }
+                
+                autoGenerate();
+                
+            } catch (err) {
+                console.error(err);
+                alert('Fout bij het importeren van het JSON bestand.');
+            }
+        };
+        reader.readAsText(file);
+        
+        event.target.value = '';
+    }
+</script>
+
+</body>
+</html>
